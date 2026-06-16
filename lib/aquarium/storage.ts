@@ -1,4 +1,5 @@
 import type { Fish, StoredFish } from './types'
+import { BASE_SPEED } from './fishPhysics'
 
 const STORAGE_KEY = 'aquarium-fish'
 
@@ -9,8 +10,8 @@ export function serializeFish(fish: Fish[]): StoredFish[] {
     facingRight: f.facingRight,
     x: f.x,
     y: f.y,
-    vx: f.vx,
-    vy: f.vy,
+    angle: f.angle,
+    speed: f.speed,
     width: f.width,
     height: f.height,
   }))
@@ -39,18 +40,26 @@ export function loadFishFromStorage(): StoredFish[] {
 export function storedFishToFish(stored: StoredFish): Promise<Fish> {
   return new Promise((resolve) => {
     const img = new Image()
-    img.onload = () =>
+    img.onload = () => {
+      // 구버전 저장 파일(vx/vy만 있는 경우) 역호환 처리
+      const legacy = stored as StoredFish & { vx?: number; vy?: number }
+      const angle = stored.angle ?? (legacy.vx != null ? Math.atan2(legacy.vy ?? 0, legacy.vx) : Math.random() * Math.PI * 2)
+      const speed = stored.speed ?? BASE_SPEED
+
       resolve({
         id: stored.id,
         sprite: img,
         facingRight: stored.facingRight,
         x: stored.x,
         y: stored.y,
-        vx: stored.vx,
-        vy: stored.vy,
+        angle,
+        speed,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed * 0.45,
         width: stored.width,
         height: stored.height,
       })
+    }
     img.src = stored.dataURL
   })
 }

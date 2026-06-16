@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Fish, AquariumDims, StoredFish } from '@/lib/aquarium/types'
-import { randomVelocity } from '@/lib/aquarium/fishPhysics'
+import { randomAngle, BASE_SPEED } from '@/lib/aquarium/fishPhysics'
 import { startGameLoop } from '@/lib/aquarium/gameLoop'
 import {
   loadFishFromStorage,
@@ -47,13 +47,17 @@ export default function AquariumPage() {
     const img = new Image()
     img.onload = () => {
       const dims = dimsRef.current
+      const angle = randomAngle()
+      const speed = BASE_SPEED + (Math.random() - 0.5) * 0.6
       fishRef.current.push({
         id: `fish-${Date.now()}`,
         sprite: img,
         x: Math.random() * Math.max(dims.width - 80, 0),
         y: Math.random() * Math.max(dims.height - 60, 0),
-        vx: randomVelocity(),
-        vy: randomVelocity(),
+        angle,
+        speed,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed * 0.45,
         width: 80,
         height: 60,
         facingRight,
