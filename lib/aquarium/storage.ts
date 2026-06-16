@@ -1,5 +1,6 @@
-import type { Fish, StoredFish } from './types'
+import type { Fish, StoredFish, AquariumDims } from './types'
 import { BASE_SPEED } from './fishPhysics'
+import { BORDER_PAD, SAND_HEIGHT } from './renderAquarium'
 
 const STORAGE_KEY = 'aquarium-fish'
 
@@ -37,21 +38,27 @@ export function loadFishFromStorage(): StoredFish[] {
   }
 }
 
-export function storedFishToFish(stored: StoredFish): Promise<Fish> {
+export function storedFishToFish(stored: StoredFish, dims?: AquariumDims): Promise<Fish> {
   return new Promise((resolve) => {
     const img = new Image()
     img.onload = () => {
-      // 구버전 저장 파일(vx/vy만 있는 경우) 역호환 처리
       const speed = stored.speed ?? BASE_SPEED
-      // 리로드 시 각도를 새로 랜덤화 — 저장된 각도로 불러오면 전부 같은 방향
       const angle = Math.random() * Math.PI * 2
+      const w = stored.width
+      const h = stored.height
+      const x = dims && dims.width > 0
+        ? BORDER_PAD + Math.random() * Math.max(dims.width  - BORDER_PAD * 2 - w, 0)
+        : stored.x
+      const y = dims && dims.height > 0
+        ? BORDER_PAD + Math.random() * Math.max(dims.height - BORDER_PAD - SAND_HEIGHT - h, 0)
+        : stored.y
 
       resolve({
         id: stored.id,
         sprite: img,
         facingRight: stored.facingRight,
-        x: stored.x,
-        y: stored.y,
+        x,
+        y,
         angle,
         speed,
         vx: Math.cos(angle) * speed,

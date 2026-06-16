@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Fish, AquariumDims, StoredFish } from '@/lib/aquarium/types'
 import { randomAngle, BASE_SPEED } from '@/lib/aquarium/fishPhysics'
+import { BORDER_PAD, SAND_HEIGHT } from '@/lib/aquarium/renderAquarium'
 import { startGameLoop } from '@/lib/aquarium/gameLoop'
 import {
   loadFishFromStorage,
@@ -35,7 +36,7 @@ export default function AquariumPage() {
     )
 
     const stored = loadFishFromStorage()
-    Promise.all(stored.map(storedFishToFish)).then((fish) => {
+    Promise.all(stored.map((s) => storedFishToFish(s, dimsRef.current))).then((fish) => {
       fishRef.current.push(...fish)
       setFishCount(fish.length)
     })
@@ -52,8 +53,8 @@ export default function AquariumPage() {
       fishRef.current.push({
         id: `fish-${Date.now()}`,
         sprite: img,
-        x: Math.random() * Math.max(dims.width - 80, 0),
-        y: Math.random() * Math.max(dims.height - 60, 0),
+        x: BORDER_PAD + Math.random() * Math.max(dims.width - BORDER_PAD * 2 - 80, 0),
+        y: BORDER_PAD + Math.random() * Math.max(dims.height - BORDER_PAD - SAND_HEIGHT - 60, 0),
         angle,
         speed,
         vx: Math.cos(angle) * speed,
@@ -76,7 +77,7 @@ export default function AquariumPage() {
   }, [])
 
   const handleImportFish = useCallback((stored: StoredFish[]) => {
-    Promise.all(stored.map(storedFishToFish)).then((fish) => {
+    Promise.all(stored.map((s) => storedFishToFish(s, dimsRef.current))).then((fish) => {
       fishRef.current.push(...fish)
       saveFishToStorage(fishRef.current)
       setFishCount((n) => n + fish.length)
