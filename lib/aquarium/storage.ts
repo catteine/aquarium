@@ -42,9 +42,9 @@ export function storedFishToFish(stored: StoredFish): Promise<Fish> {
     const img = new Image()
     img.onload = () => {
       // 구버전 저장 파일(vx/vy만 있는 경우) 역호환 처리
-      const legacy = stored as StoredFish & { vx?: number; vy?: number }
-      const angle = stored.angle ?? (legacy.vx != null ? Math.atan2(legacy.vy ?? 0, legacy.vx) : Math.random() * Math.PI * 2)
       const speed = stored.speed ?? BASE_SPEED
+      // 리로드 시 각도를 새로 랜덤화 — 저장된 각도로 불러오면 전부 같은 방향
+      const angle = Math.random() * Math.PI * 2
 
       resolve({
         id: stored.id,

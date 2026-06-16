@@ -49,9 +49,12 @@ export function updateFish(fish: Fish, dims: AquariumDims): void {
   fish.x += fish.vx
   fish.y += fish.vy
 
-  // 6. 최후 경계 클램프 (벽 뚫기 방지)
-  fish.x = clamp(fish.x, left, right)
-  fish.y = clamp(fish.y, top, bottom)
+  // 6. 최후 경계 클램프 + 벽 고착 방지 (steering이 실패할 때 강제 반전)
+  if (fish.x < left)   { fish.x = left;   fish.vx =  Math.abs(fish.vx) || fish.speed; }
+  if (fish.x > right)  { fish.x = right;  fish.vx = -Math.abs(fish.vx) || -fish.speed; }
+  if (fish.y < top)    { fish.y = top;     fish.vy =  Math.abs(fish.vy) || fish.speed * Y_DAMPING; }
+  if (fish.y > bottom) { fish.y = bottom;  fish.vy = -Math.abs(fish.vy) || -fish.speed * Y_DAMPING; }
+  fish.angle = Math.atan2(fish.vy, fish.vx)
 }
 
 export function randomAngle(): number {
