@@ -22,8 +22,19 @@ export default function AquariumPage() {
   const [confirmStep, setConfirmStep] = useState<0 | 1 | 2>(0)
   const [fishCount, setFishCount] = useState(0)
 
+  const fishLoadedRef = useRef(false)
+
   const handleResize = useCallback((width: number, height: number) => {
     dimsRef.current = { width, height }
+    // 첫 리사이즈(=canvas 크기 확정)때 물고기 로드 — dims가 0인 상태를 피함
+    if (!fishLoadedRef.current && width > 0 && height > 0) {
+      fishLoadedRef.current = true
+      const stored = loadFishFromStorage()
+      Promise.all(stored.map((s) => storedFishToFish(s, { width, height }))).then((fish) => {
+        fishRef.current.push(...fish)
+        setFishCount(fish.length)
+      })
+    }
   }, [])
 
   useEffect(() => {
@@ -34,13 +45,6 @@ export default function AquariumPage() {
       () => fishRef.current,
       () => dimsRef.current,
     )
-
-    const stored = loadFishFromStorage()
-    Promise.all(stored.map((s) => storedFishToFish(s, dimsRef.current))).then((fish) => {
-      fishRef.current.push(...fish)
-      setFishCount(fish.length)
-    })
-
     return cancel
   }, [])
 
