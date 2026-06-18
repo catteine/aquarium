@@ -61,6 +61,7 @@ export function storedFishToFish(stored: StoredFish, dims?: AquariumDims): Promi
         y,
         angle,
         speed,
+        dirTimer: Math.floor(Math.random() * 300),
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed * 0.45,
         width: stored.width,

@@ -3,6 +3,8 @@ import { BORDER_PAD, SAND_HEIGHT } from './renderAquarium'
 
 // ── 상수 ──────────────────────────────────────────────
 export const BASE_SPEED = 2.0          // 기본 속도 (px/frame)
+const DIR_CHANGE_INTERVAL = 300        // 방향 전환 주기 (frames, ~5초 @ 60fps)
+const DIR_CHANGE_CHANCE = 0.5          // 전환 발생 확률
 const WANDER_STRENGTH = 0.28           // 프레임당 최대 방향 변화 (radians)
 const WALL_AVOID_DIST = 90             // 벽 회피 시작 거리 (px)
 const WALL_FORCE = 0.55                // 벽 반발력 크기
@@ -21,10 +23,20 @@ export function updateFish(fish: Fish, dims: AquariumDims): void {
   const top    = BORDER_PAD
   const bottom = dims.height - SAND_HEIGHT - fish.height
 
-  // 1. Wander — 매 프레임 방향을 조금씩 랜덤하게 틈
+  // 1. 주기적 방향 전환 (O/X 체크)
+  fish.dirTimer--
+  if (fish.dirTimer <= 0) {
+    fish.dirTimer = DIR_CHANGE_INTERVAL + Math.floor(Math.random() * 120 - 60)
+    if (Math.random() < DIR_CHANGE_CHANCE) {
+      // 좌우 반전 + 상하 랜덤 추가
+      fish.angle = Math.PI - fish.angle + (Math.random() - 0.5) * 1.0
+    }
+  }
+
+  // 2. Wander
   const wanderAngle = fish.angle + (Math.random() - 0.5) * WANDER_STRENGTH * 2
 
-  // 2. Wall avoidance — 벽 근처에서 밀어내는 힘 벡터
+  // 3. Wall avoidance
   let fx = 0
   let fy = 0
   if (fish.x - left   < WALL_AVOID_DIST) fx += (1 - (fish.x - left)   / WALL_AVOID_DIST) * WALL_FORCE
@@ -32,7 +44,7 @@ export function updateFish(fish: Fish, dims: AquariumDims): void {
   if (fish.y - top    < WALL_AVOID_DIST) fy += (1 - (fish.y - top)    / WALL_AVOID_DIST) * WALL_FORCE
   if (bottom - fish.y < WALL_AVOID_DIST) fy -= (1 - (bottom - fish.y) / WALL_AVOID_DIST) * WALL_FORCE
 
-  // 3. Wander 방향 벡터 + 벽 반발력 합산 → 새 angle 계산
+  // 4. Wander + wall force → new angle
   const wx = Math.cos(wanderAngle) * fish.speed + fx
   const wy = Math.sin(wanderAngle) * fish.speed * Y_DAMPING + fy
   fish.angle = Math.atan2(wy, wx)

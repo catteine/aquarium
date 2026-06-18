@@ -61,6 +61,7 @@ export default function AquariumPage() {
         y: BORDER_PAD + Math.random() * Math.max(dims.height - BORDER_PAD - SAND_HEIGHT - 60, 0),
         angle,
         speed,
+        dirTimer: Math.floor(Math.random() * 300),
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed * 0.45,
         width: 80,
